@@ -31,11 +31,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check npm credentials
+        id: npm
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::NPM_TOKEN is not set — skipping npm publish. Add the secret to enable releases."
+          fi
+
       - name: Create release PR or publish to npm
         uses: changesets/action@v1
         with:
           version: pnpm version-packages
-          publish: pnpm release
+          publish: ${{ steps.npm.outputs.configured == 'true' && 'pnpm release' || '' }}
           commit: "chore: version packages"
           title: "chore: version packages"
         env:
