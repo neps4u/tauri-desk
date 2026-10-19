@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tauri Desk</title>
+    <script>
+      // Apply persisted theme before first paint to avoid a flash.
+      (function () {
+        try {
+          var theme = JSON.parse(localStorage.getItem('tauri-desk:theme') || 'null');
+          var mode = theme && theme.mode ? theme.mode : 'system';
+          var dark =
+            mode === 'dark' ||
+            (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var root = document.documentElement;
+          root.classList.toggle('dark', dark);
+          if (theme) {
+            root.dataset.accent = theme.accent;
+            root.dataset.radius = theme.radius;
+            root.dataset.density = theme.density;
+            root.dataset.font = theme.font;
+          }
+          root.style.colorScheme = dark ? 'dark' : 'light';
+        } catch (e) {
+          /* ignore */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

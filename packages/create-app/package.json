@@ -1,0 +1,42 @@
+{
+  "name": "@tauri-desk/create-app",
+  "version": "0.1.0",
+  "description": "Scaffold a new Tauri 2 + Svelte 5 dashboard app.",
+  "type": "module",
+  "license": "MIT",
+  "keywords": [
+    "tauri",
+    "svelte",
+    "create",
+    "scaffold",
+    "dashboard"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neps4u/tauri-desk.git",
+    "directory": "packages/create-app"
+  },
+  "homepage": "https://github.com/neps4u/tauri-desk/tree/main/packages/create-app#readme",
+  "bugs": {
+    "url": "https://github.com/neps4u/tauri-desk/issues"
+  },
+  "bin": {
+    "create-tauri-desk-app": "./index.js"
+  },
+  "files": [
+    "index.js",
+    "template"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "start": "node ./index.js",
+    "sync-template": "node ./scripts/sync-template.mjs",
+    "prepack": "node ./scripts/sync-template.mjs",
+    "lint": "eslint ."
+  }
+}

@@ -1,0 +1,15 @@
+# Normalize line endings: keep LF in the repo and in the working tree so that
+# Prettier (endOfLine: lf) behaves identically on Windows, macOS and CI.
+* text=auto eol=lf
+
+# Binary assets
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary

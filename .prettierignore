@@ -1,0 +1,9 @@
+node_modules/
+dist/
+build/
+.svelte-kit/
+out/
+pnpm-lock.yaml
+src-tauri/target/
+packages/create-app/template/
+*.md

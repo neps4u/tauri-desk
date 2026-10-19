@@ -1,0 +1,40 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/
+.svelte-kit/
+out/
+
+# tauri
+**/src-tauri/target/
+**/src-tauri/gen/
+**/src-tauri/.tauri/
+
+# env
+.env
+.env.*
+!.env.example
+
+# editors / os
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# test / coverage
+coverage/
+
+# pack / misc
+*.tgz
+
+# generated scaffolder template (see packages/create-app/scripts/sync-template.mjs)
+packages/create-app/template/
