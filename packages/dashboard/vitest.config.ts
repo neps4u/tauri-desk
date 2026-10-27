@@ -1,9 +1,9 @@
-import { defineConfig } from 'vitest/config';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
-import { svelteTesting } from '@testing-library/svelte/vite';
+import { defineConfig } from 'vitest/config'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { svelteTesting } from '@testing-library/svelte/vite'
 
 export default defineConfig({
-  plugins: [svelte({ hot: false }), svelteTesting()],
+  plugins: [svelte({ hot: false, runes: true }), svelteTesting()],
   resolve: {
     conditions: ['browser']
   },
@@ -16,6 +16,9 @@ export default defineConfig({
       include: ['src/lib/**/*.{ts,svelte}'],
       reporter: ['text', 'lcov'],
       exclude: ['src/lib/index.ts']
+    },
+    experimental: {
+      transformMode: { normalize: false }
     }
   }
-});
+})
