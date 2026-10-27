@@ -16,15 +16,15 @@ with `--yes`.
 
 ### Options
 
-| Flag | Description |
-| --- | --- |
-| `--id <bundle.id>` | Bundle identifier (default `com.tauridesk.<slug>`) |
-| `--product <name>` | Product / window title |
-| `--scope <@scope>` | npm scope for the generated app package |
-| `--dashboard <spec>` | `@tauri-desk/dashboard` dependency spec |
-| `--install` | Run `pnpm install` after scaffolding |
-| `-y`, `--yes` | Skip prompts and use defaults |
-| `-h`, `--help` | Show help |
+| Flag                 | Description                                        |
+| -------------------- | -------------------------------------------------- |
+| `--id <bundle.id>`   | Bundle identifier (default `com.tauridesk.<slug>`) |
+| `--product <name>`   | Product / window title                             |
+| `--scope <@scope>`   | npm scope for the generated app package            |
+| `--dashboard <spec>` | `@tauri-desk/dashboard` dependency spec            |
+| `--install`          | Run `pnpm install` after scaffolding               |
+| `-y`, `--yes`        | Skip prompts and use defaults                      |
+| `-h`, `--help`       | Show help                                          |
 
 ## What you get
 

@@ -13,11 +13,11 @@ and a runnable reference app.
 
 ## Repository layout
 
-| Path | Description |
-| --- | --- |
-| `packages/dashboard` | `@tauri-desk/dashboard` — the reusable shell library |
-| `packages/create-app` | `@tauri-desk/create-app` — project scaffolder CLI |
-| `apps/reference` | Reference Tauri app wiring everything together |
+| Path                  | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `packages/dashboard`  | `@tauri-desk/dashboard` — the reusable shell library |
+| `packages/create-app` | `@tauri-desk/create-app` — project scaffolder CLI    |
+| `apps/reference`      | Reference Tauri app wiring everything together       |
 
 ## Prerequisites
 
@@ -38,16 +38,16 @@ dashboard falls back to `localStorage` outside the Tauri runtime.
 
 ## Scripts
 
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Vite dev server for the reference app (browser) |
-| `pnpm tauri dev` | Full desktop app with hot reload |
-| `pnpm build` | Build the dashboard package, then the reference app |
-| `pnpm tauri build` | Produce native bundles/installers |
-| `pnpm check` | `svelte-check` across all packages |
-| `pnpm test` | Vitest unit + component tests |
-| `pnpm lint` | ESLint (flat config) |
-| `pnpm format` / `pnpm format:check` | Prettier write / verify |
+| Command                             | Description                                         |
+| ----------------------------------- | --------------------------------------------------- |
+| `pnpm dev`                          | Vite dev server for the reference app (browser)     |
+| `pnpm tauri dev`                    | Full desktop app with hot reload                    |
+| `pnpm build`                        | Build the dashboard package, then the reference app |
+| `pnpm tauri build`                  | Produce native bundles/installers                   |
+| `pnpm check`                        | `svelte-check` across all packages                  |
+| `pnpm test`                         | Vitest unit + component tests                       |
+| `pnpm lint`                         | ESLint (flat config)                                |
+| `pnpm format` / `pnpm format:check` | Prettier write / verify                             |
 
 ## Creating a new app
 
@@ -68,8 +68,7 @@ pnpm add @tauri-desk/dashboard
 
 ```svelte
 <!-- src/app.css -->
-@import 'tailwindcss';
-@import '@tauri-desk/dashboard/theme.css';
+@import 'tailwindcss'; @import '@tauri-desk/dashboard/theme.css';
 ```
 
 ```ts

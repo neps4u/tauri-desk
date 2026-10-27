@@ -3,11 +3,11 @@
 Thanks for taking the time to contribute! This is a pnpm monorepo with three
 workspace packages:
 
-| Path | Package | Purpose |
-| --- | --- | --- |
-| `packages/dashboard` | `@tauri-desk/dashboard` | Reusable Tauri 2 + Svelte 5 shell library |
-| `packages/create-app` | `@tauri-desk/create-app` | Scaffolder CLI |
-| `apps/reference` | `@tauri-desk/reference` | Runnable reference app (private) |
+| Path                  | Package                  | Purpose                                   |
+| --------------------- | ------------------------ | ----------------------------------------- |
+| `packages/dashboard`  | `@tauri-desk/dashboard`  | Reusable Tauri 2 + Svelte 5 shell library |
+| `packages/create-app` | `@tauri-desk/create-app` | Scaffolder CLI                            |
+| `apps/reference`      | `@tauri-desk/reference`  | Runnable reference app (private)          |
 
 ## Setup
 

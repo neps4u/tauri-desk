@@ -41,9 +41,7 @@ mount(App, { target: document.getElementById('app')! });
 <script lang="ts">
   import { AppShell, Toaster, CommandPalette, t, type NavConfig } from '@tauri-desk/dashboard';
 
-  const nav: NavConfig = [
-    { items: [{ label: 'Dashboard', href: '/', exact: true }] }
-  ];
+  const nav: NavConfig = [{ items: [{ label: 'Dashboard', href: '/', exact: true }] }];
 </script>
 
 <AppShell {nav} appName="My App">
@@ -65,13 +63,13 @@ Import the design tokens once:
 The theme is reflected onto `<html>` as `class="dark"` plus `data-accent`,
 `data-radius`, `data-density` and `data-font` attributes. `ThemeConfig`:
 
-| Field | Values |
-| --- | --- |
-| `mode` | `light` · `dark` · `system` |
-| `accent` | `neutral` · `blue` · `violet` · `emerald` · `rose` · `amber` · `orange` |
-| `radius` | `none` · `sm` · `md` · `lg` |
-| `density` | `compact` · `cozy` · `comfortable` |
-| `font` | `sans` · `serif` · `mono` |
+| Field     | Values                                                                  |
+| --------- | ----------------------------------------------------------------------- |
+| `mode`    | `light` · `dark` · `system`                                             |
+| `accent`  | `neutral` · `blue` · `violet` · `emerald` · `rose` · `amber` · `orange` |
+| `radius`  | `none` · `sm` · `md` · `lg`                                             |
+| `density` | `compact` · `cozy` · `comfortable`                                      |
+| `font`    | `sans` · `serif` · `mono`                                               |
 
 Add this snippet to `index.html` to apply the persisted theme before first paint
 (avoids a flash):
@@ -108,7 +106,7 @@ saving (debounced). Returns a teardown function.
 
 ```ts
 const dispose = await settings.bootstrap({
-  adapter: createStorageAdapter(),          // optional override
+  adapter: createStorageAdapter(), // optional override
   locale: 'en',
   onReady: (s) => i18n.setLocale(s.locale)
 });
@@ -167,7 +165,7 @@ await updater.install();
 import { initPlatform, platform } from '@tauri-desk/dashboard';
 await initPlatform();
 platform.isTauri; // boolean
-platform.isMac;   // boolean
+platform.isMac; // boolean
 ```
 
 ## Publishing note
