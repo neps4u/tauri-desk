@@ -11,13 +11,13 @@ const mockMessages: Record<string, Record<string, string>> = {
     'app.general': 'General',
     'app.about': 'About',
     'app.signOut': 'Sign out',
-    'app': 'Dashboard',
+    app: 'Dashboard',
     'updates.available': 'Version {version} is available.',
-    'no-translation': 'no-translation',
+    'no-translation': 'no-translation'
   },
   fr: {
     'app.settings': 'Paramètres',
-    'app': 'Tableau de bord',
+    app: 'Tableau de bord'
   }
 };
 
@@ -48,7 +48,7 @@ const i18nMock = {
       return result;
     }
     return text;
-  },
+  }
 };
 
 afterEach(() => {
@@ -72,7 +72,9 @@ describe('i18n', () => {
   });
 
   it('interpolates variables', () => {
-    expect(i18nMock.t('updates.available', { version: '1.2.3' })).toBe('Version 1.2.3 is available.');
+    expect(i18nMock.t('updates.available', { version: '1.2.3' })).toBe(
+      'Version 1.2.3 is available.'
+    );
   });
 
   it('keeps placeholders that have no value', () => {

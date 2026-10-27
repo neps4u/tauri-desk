@@ -1,6 +1,6 @@
-import { defineConfig } from 'vitest/config'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
-import { svelteTesting } from '@testing-library/svelte/vite'
+import { defineConfig } from 'vitest/config';
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { svelteTesting } from '@testing-library/svelte/vite';
 
 export default defineConfig({
   plugins: [svelte({ hot: false, runes: true }), svelteTesting()],
@@ -21,4 +21,4 @@ export default defineConfig({
       transformMode: { normalize: false }
     }
   }
-})
+});

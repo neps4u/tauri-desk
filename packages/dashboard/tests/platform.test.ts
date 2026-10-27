@@ -8,7 +8,7 @@ const mockPlatform = {
   os: 'unknown' as const,
   isTauri: false,
   isDesktop: false,
-  isMac: false,
+  isMac: false
 };
 
 // Simulate the platform detection logic without Svelte 5 $state
@@ -26,7 +26,7 @@ const mockPlatformObj = {
   os: 'unknown' as const,
   isTauri: false,
   isDesktop: false,
-  isMac: false,
+  isMac: false
 };
 
 // Mock initPlatform function — simulates the platform detection
