@@ -9,6 +9,7 @@ import {
 } from '../theme/theme.svelte';
 import { createStorageAdapter, type StorageAdapter } from './storage';
 
+
 export interface DashboardSettings {
   theme: ThemeConfig;
   locale: string;
@@ -43,9 +44,10 @@ class SettingsStore {
   status = $state<'idle' | 'loading' | 'ready' | 'error'>('idle');
 
   private adapter: StorageAdapter | null = null;
-  private ready = false;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private teardown: (() => void) | null = null;
+  /** JSON of the last snapshot we successfully persisted; avoids rewriting unchanged data. */
+  private lastSaved = '';
 
   get resolvedMode(): 'light' | 'dark' {
     return resolveMode(this.theme.mode, systemTheme.prefersDark);
@@ -79,7 +81,8 @@ class SettingsStore {
       this.status = 'error';
     }
 
-    this.ready = true;
+    // Remember what was persisted so we never write defaults on error or on launch.
+    this.lastSaved = JSON.stringify(this.snapshot);
     options.onReady?.(this.snapshot);
 
     const stopSystem = startSystemThemeListener();
@@ -96,18 +99,40 @@ class SettingsStore {
         }
       });
 
-      // persist on change (debounced)
-      if (this.ready) {
-        $effect(() => {
-          void this.snapshot;
-          this.scheduleSave();
-        });
-      }
+      // persist on change (debounced) — only when the snapshot actually differs
+      $effect(() => {
+        void this.snapshot;
+        const next = JSON.stringify(this.snapshot);
+        if (next !== this.lastSaved) this.scheduleSave();
+      });
     });
+
+    // flush any pending save before the window disappears
+    const closeUnlisteners: (() => void)[] = [];
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      // Browser: save when the tab goes to the background
+      const onHide = () => void this.save();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') onHide();
+      });
+      closeUnlisteners.push(() => document.removeEventListener('visibilitychange', onHide));
+    }
+    // Tauri: save when the window is closing
+    try {
+      const { getCurrentWindow } = await import('@tauri-apps/api/window');
+      const win = getCurrentWindow();
+      const unlisten = await win.onCloseRequested(async () => {
+        await this.save();
+      });
+      closeUnlisteners.push(unlisten);
+    } catch {
+      /* not running in Tauri, or the window API is unavailable */
+    }
 
     this.teardown = () => {
       stopSystem();
       stopEffects();
+      for (const unlisten of closeUnlisteners) unlisten();
       if (this.saveTimer) clearTimeout(this.saveTimer);
     };
 
@@ -139,7 +164,7 @@ class SettingsStore {
   }
 
   private scheduleSave(): void {
-    if (!this.ready || !this.adapter) return;
+    if (!this.adapter) return;
     if (this.saveTimer) clearTimeout(this.saveTimer);
     this.saveTimer = setTimeout(() => void this.save(), 350);
   }
@@ -153,6 +178,7 @@ class SettingsStore {
     try {
       await this.adapter.set(SETTINGS_STORAGE_KEY, this.snapshot);
       await this.adapter.flush();
+      this.lastSaved = JSON.stringify(this.snapshot);
     } catch {
       this.status = 'error';
     }
