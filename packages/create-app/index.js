@@ -22,7 +22,7 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 
@@ -32,6 +32,40 @@ const BUNDLED_TEMPLATE = path.join(__dirname, 'template');
 const REPO_TEMPLATE = path.join(REPO_ROOT, 'apps', 'reference');
 const TEMPLATE_DIR = fs.existsSync(BUNDLED_TEMPLATE) ? BUNDLED_TEMPLATE : REPO_TEMPLATE;
 const DEFAULT_DASHBOARD_SPEC = '^0.1.0';
+
+const NAME_SLUG_RE = /^[a-z][a-z0-9-]*$/;
+const BUNDLE_ID_RE = /^[A-Za-z][A-Za-z0-9-]*(\.[A-Za-z][A-Za-z0-9-]*)+$/;
+const SCOPE_RE = /^@[a-z0-9-]+$/;
+// Characters that break JSON (.json) and TOML (.toml) when interpolated raw:
+// " (0x22), \ (0x5c), control characters (< 0x20), DEL (0x7f).
+function hasBreakingChars(name) {
+  for (let i = 0; i < name.length; i++) {
+    const code = name.charCodeAt(i);
+    if (code === 0x22 || code === 0x5c || code < 0x20 || code === 0x7f) return true;
+  }
+  return false;
+}
+
+// Compiler options inlined into a standalone app's tsconfig.json (see SCAF-2).
+const STANDALONE_TS_CONFIG_COMPILER_OPTIONS = {
+  target: 'ES2022',
+  module: 'ESNext',
+  moduleResolution: 'bundler',
+  lib: ['ES2022', 'DOM', 'DOM.Iterable'],
+  useDefineForClassFields: true,
+  verbatimModuleSyntax: true,
+  isolatedModules: true,
+  resolveJsonModule: true,
+  esModuleInterop: true,
+  skipLibCheck: true,
+  strict: true,
+  noImplicitOverride: true,
+  forceConsistentCasingInFileNames: true,
+  allowJs: true,
+  checkJs: true,
+  sourceMap: true,
+  noEmit: true
+};
 
 const EXCLUDE = new Set(['node_modules', '.svelte-kit', 'dist', 'target', 'gen', '.turbo']);
 const EXCLUDE_FILES = new Set(['app-icon.png', 'pnpm-lock.yaml', 'package-lock.json']);
@@ -46,36 +80,45 @@ const TEXT_EXT = new Set([
   '.css',
   '.md',
   '.mjs',
-  '.cjs'
+  '.cjs',
+  '.lock'
 ]);
 
 const args = process.argv.slice(2);
 const flags = parseFlags(args);
 
-if (flags.help) {
-  printHelp();
-  process.exit(0);
-}
+const IS_ENTRYPOINT = import.meta.url === pathToFileURL(process.argv[1]).href;
 
-main().catch((error) => {
-  console.error(`\n✖ ${error.message}`);
-  process.exit(1);
-});
+if (IS_ENTRYPOINT) {
+  if (flags.help) {
+    printHelp();
+    process.exit(0);
+  }
+  main().catch((error) => {
+    console.error(`\n✖ ${error.message}`);
+    process.exit(1);
+  });
+}
 
 async function main() {
   const rl = flags.yes ? null : readline.createInterface({ input, output });
   try {
     const appName = flags._[0] ?? (rl ? await ask(rl, 'App name', 'my-dashboard-app') : null);
     if (!appName) throw new Error('An app name is required.');
+    validateAppName(appName);
 
     const slug = toSlug(appName);
+    validateSlug(slug);
     const productName =
       flags.product ??
       (rl ? await ask(rl, 'Product / window title', toTitle(appName)) : toTitle(appName));
+    validateProductName(productName);
     const bundleId =
       flags.id ??
       (rl ? await ask(rl, 'Bundle identifier', `com.tauridesk.${slug}`) : `com.tauridesk.${slug}`);
+    validateBundleId(bundleId);
     const scope = flags.scope ?? '';
+    if (scope) validateScope(scope);
 
     const targetDir = path.resolve(process.cwd(), appName);
 
@@ -107,7 +150,7 @@ async function main() {
     setDashboardDependency(path.join(targetDir, 'package.json'), dashboardSpec);
 
     if (!insideRepo) {
-      writeWorkspaceFile(targetDir, slug);
+      writeStandaloneFiles(targetDir, slug);
     }
 
     if (flags.install) {
@@ -195,13 +238,74 @@ function setDashboardDependency(pkgPath, spec) {
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 }
 
-function writeWorkspaceFile(dir, slug) {
+/**
+ * Make the generated tsconfig self-contained so a scaffolded app outside this
+ * monorepo type-checks without `../../tsconfig.base.json`.
+ */
+function makeStandaloneTsconfig(dir) {
+  const tsconfigPath = path.join(dir, 'tsconfig.json');
+  if (!fs.existsSync(tsconfigPath)) return;
+  const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, 'utf8'));
+  delete tsconfig.extends;
+  tsconfig.compilerOptions = {
+    ...STANDALONE_TS_CONFIG_COMPILER_OPTIONS,
+    ...(tsconfig.compilerOptions ?? {})
+  };
+  fs.writeFileSync(tsconfigPath, `${JSON.stringify(tsconfig, null, 2)}\n`);
+}
+
+function writeStandaloneFiles(dir, slug) {
   fs.writeFileSync(
     path.join(dir, '.npmrc'),
     ['engine-strict=false', 'auto-install-peers=true', 'strict-peer-dependencies=false', ''].join(
       '\n'
     )
   );
+
+  fs.writeFileSync(
+    path.join(dir, '.gitignore'),
+    [
+      '# dependencies',
+      'node_modules/',
+      '.pnpm-store/',
+      '',
+      '# build output',
+      'dist/',
+      'build/',
+      '.svelte-kit/',
+      'out/',
+      '',
+      '# tauri',
+      'src-tauri/target/',
+      'src-tauri/gen/',
+      'src-tauri/.tauri/',
+      '',
+      '# env',
+      '.env',
+      '.env.*',
+      '!.env.example',
+      '',
+      '# editors / os',
+      '.DS_Store',
+      'Thumbs.db',
+      '',
+      '# test / coverage',
+      'coverage/'
+    ].join('\n') + '\n'
+  );
+
+  // Standalone apps install @tauri-desk/dashboard from npm; there is no
+  // workspace package to build, and eslint/config is not part of the scaffold.
+  const pkgPath = path.join(dir, 'package.json');
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  if (typeof pkg.scripts?.build === 'string' && pkg.scripts.build.includes('@tauri-desk/dashboard')) {
+    pkg.scripts.build = 'vite build';
+  }
+  delete pkg.scripts.lint;
+  fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
+
+  makeStandaloneTsconfig(dir);
+
   const readme = [
     `# ${slug}`,
     '',
@@ -285,3 +389,57 @@ function isInside(child, parent) {
   const rel = path.relative(parent, child);
   return rel !== '' && !rel.startsWith('..') && !path.isAbsolute(rel);
 }
+
+function validateAppName(name) {
+  const base = path.basename(name);
+  if (base !== name || name.includes('..')) {
+    throw new Error(`Invalid app name "${name}": must not contain path separators or "..".`);
+  }
+}
+
+function validateSlug(slug) {
+  if (!NAME_SLUG_RE.test(slug)) {
+    throw new Error(
+      `Invalid app name: derived slug "${slug}" is empty or invalid. ` +
+        'Use letters, digits and hyphens, starting with a letter.'
+    );
+  }
+}
+
+function validateBundleId(id) {
+  if (!BUNDLE_ID_RE.test(id)) {
+    throw new Error(
+      `Invalid bundle identifier "${id}": must be reverse-domain like com.example.app.`
+    );
+  }
+}
+
+function validateScope(scope) {
+  if (!SCOPE_RE.test(scope)) {
+    throw new Error(
+      `Invalid scope "${scope}": must start with "@" followed by lowercase letters, digits or hyphens.`
+    );
+  }
+}
+
+function validateProductName(name) {
+  if (hasBreakingChars(name)) {
+    throw new Error(
+      `Invalid product name "${name}": must not contain quotes, backslashes or control characters.`
+    );
+  }
+}
+
+export {
+  parseFlags,
+  toSlug,
+  toTitle,
+  validateAppName,
+  validateSlug,
+  validateBundleId,
+  validateScope,
+  validateProductName,
+  rewriteFiles,
+  writeStandaloneFiles,
+  makeStandaloneTsconfig
+};
