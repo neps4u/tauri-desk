@@ -37,6 +37,7 @@
     "start": "node ./index.js",
     "sync-template": "node ./scripts/sync-template.mjs",
     "prepack": "node ./scripts/sync-template.mjs",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --test"
   }
 }
